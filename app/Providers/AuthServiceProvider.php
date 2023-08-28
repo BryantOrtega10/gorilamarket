@@ -133,7 +133,15 @@ class AuthServiceProvider extends ServiceProvider
             if($user->role == 'superadmin') return true;
             $permiso = Permisos::join("menu as m","m.idmenu","=","fk_menu")
                     ->where("fk_user","=",$user->id)
-                    ->where("ruta","=","notificaciones.push")
+                    ->where("ruta","=","distribuidor.tabla")
+                    ->first();
+            return isset($permiso);
+        });
+        Gate::define('reclutador.tabla', function (User $user) {
+            if($user->role == 'superadmin') return true;
+            $permiso = Permisos::join("menu as m","m.idmenu","=","fk_menu")
+                    ->where("fk_user","=",$user->id)
+                    ->where("ruta","=","reclutador.tabla")
                     ->first();
             return isset($permiso);
         });

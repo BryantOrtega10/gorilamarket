@@ -365,6 +365,14 @@ return [
             'can' => ['distribuidor.tabla']
         ],
         [
+            'text' => 'Reclutadores',
+            'route' => 'reclutador.tabla',
+            'icon' => 'fas fa-user-plus',
+            'classes' => 'menu-verde',
+            'active' => ['reclutador*'],
+            'can' => ['reclutador.tabla']
+        ],
+        [
             'text' => 'Cupones',
             'route' => 'cupones.tabla',
             'icon' => 'fas fa-ticket-alt',

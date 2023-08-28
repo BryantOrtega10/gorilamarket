@@ -55,7 +55,8 @@ class User extends Authenticatable
                 1 => "superadmin",
                 2 => "admin",
                 3 => "domiciliario",
-                4 => "distribuidor"
+                4 => "distribuidor",
+                5 => "reclutador"
                 ][$value]
         );
     }

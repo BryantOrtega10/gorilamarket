@@ -16,9 +16,11 @@ use App\Http\Controllers\PagoController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\PromocionController;
 use App\Http\Controllers\PublicidadController;
+use App\Http\Controllers\ReclutadorController;
 use App\Http\Controllers\Web\InicioController;
 use App\Http\Controllers\Web\CarritoController;
 use App\Http\Controllers\Web\DireccionController;
+use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +32,11 @@ use App\Http\Controllers\Web\DireccionController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+Route::get('/migrate', function() {
+    $exitCode = Artisan::call('migrate');
+    //$exitCode2 = Artisan::call('db:seed');
+    return '<h3>Migraci&oacute;n completada '.$exitCode.' </h3>';
+});
 
 Route::get('/', [InicioController::class, 'index'])->name('web.index');
 Route::get('/ingresar', [InicioController::class, 'ingresar'])->name('web.ingresar');
@@ -317,4 +324,19 @@ Route::group([
 	Route::get("/{idCliente}/historial/{idPago}",[DistribuidorController::class, 'verDetallePago'])->name("distribuidor.verPago");
 	Route::get("/reporteClientes",[DistribuidorController::class, 'reporteClientes'])->name("distribuidor.reporteClientes");
 	
+});
+
+
+Route::group([
+	'prefix' => 'reclutador',
+	'middleware' => ['auth','user-role:superadmin|admin']
+], function() {
+    Route::get("/",[ReclutadorController::class, 'tabla'])->name("reclutador.tabla");
+	Route::get("/agregar",[ReclutadorController::class, 'formAgregar'])->name("reclutador.agregar");
+	Route::post("/agregar",[ReclutadorController::class, 'agregar']);
+	Route::get("/modificar/{id}",[ReclutadorController::class, 'formModificar'])->name("reclutador.modificar");
+	Route::post("/modificar/{id}",[ReclutadorController::class, 'modificar']);
+	Route::get("/cambiarEs/{id}",[ReclutadorController::class, 'cambiarEstado'])->name("reclutador.cambiarEs");
+	Route::get("/pago/{id}",[ReclutadorController::class, 'formPago'])->name("reclutador.pago");
+	Route::post("/pago/{id}",[ReclutadorController::class, 'pagar']);
 });
