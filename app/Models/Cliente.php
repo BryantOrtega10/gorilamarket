@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use function PHPSTORM_META\map;
+
 class Cliente extends Model
 {
     use HasFactory;
@@ -26,7 +28,8 @@ class Cliente extends Model
         "rut",
         "estadoDistribuidor",
         "fk_usuario",
-        "estado"
+        "estado",
+        "fk_reclutador"
     ];
     public $timestamps = false;
     
