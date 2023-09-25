@@ -334,6 +334,9 @@ class CarritoController extends Controller
         if (!Session::has('carrito')) {
             return redirect()->route('web.index')->with('error',"El carrito esta vacio");
         }
+        if(Session::get('direccion') === null){
+            return redirect()->route('web.pagar')->with('error',"Selecciona una dirección para continuar");
+        }
         $descuento = 0;        
         
         $carrito = Session::get('carrito');
@@ -351,6 +354,9 @@ class CarritoController extends Controller
         
         $cliente = Cliente::where("fk_usuario","=",Auth::user()->id)->first();
         //Crear direccion en bd en caso de que no exista el id
+        
+        
+        
         if(Session::get('direccion')->idDireccion == null){
             $direccion = new Direccion;
             $direccion->fk_cliente = $cliente->idcliente;

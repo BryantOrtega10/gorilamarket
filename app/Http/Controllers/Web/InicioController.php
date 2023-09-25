@@ -308,7 +308,7 @@ class InicioController extends Controller
                 $distribuidor->fijo = $this->crearCodigoReferido($request->nombre, $request->apellido);
                 $folder = "public/ruts/";
                 $file_name =  time() . "_" . $file->getClientOriginalName();
-                $file->storeAs($folder, $file_name, "local");
+                $file->move(public_path("storage/ruts"), $file_name);
                 $distribuidor->rut = $file_name;
                 $distribuidor->tipoCliente = "2";
                 $distribuidor->save();

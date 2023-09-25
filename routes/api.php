@@ -25,9 +25,12 @@ Route::group(['middleware' => ["auth:sanctum"]], function () {
 });
 
 Route::group(['prefix' => 'reclutador','middleware' => ["auth:sanctum"]], function () {
-    Route::get("micuenta",[LoginController::class, 'micuenta']);    
+    Route::get("mi-cuenta",[LoginController::class, 'miCuentaReclutador']);    
     Route::post("registrarCliente",[LoginController::class, 'registrarCliente']);
-    
+});
+
+Route::group(['prefix' => 'cliente','middleware' => ["auth:sanctum"]], function () {
+    Route::get("mi-cuenta",[LoginController::class, 'miCuentaCliente']); 
 });
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

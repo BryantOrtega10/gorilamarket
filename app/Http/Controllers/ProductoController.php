@@ -110,7 +110,7 @@ class ProductoController extends Controller
             foreach ($files as $i => $file) {
                 $folder = "public/productos/";
                 $file_name =  time()."_".$file->getClientOriginalName();                
-                $file->storeAs($folder, $file_name, "local");
+                $file->move(public_path("storage/productos"), $file_name);
                 Funciones::resizeImage($folder,$file_name, "min", 100, 100);
                 Funciones::resizeImage($folder,$file_name, "max", 1000, 1000);
                 $fileFinal = $folder.$file_name;
@@ -185,7 +185,7 @@ class ProductoController extends Controller
             $file = $request->file('file');
             $file_name =  time()."_".$file->getClientOriginalName();                
             $folder = "public/productos/";
-            $file->storeAs($folder, $file_name, "local");
+            $file->move(public_path("storage/productos"), $file_name);
             Funciones::resizeImage($folder,$file_name, "min", 150, 150);
             Funciones::resizeImage($folder,$file_name, "max", 1500, 1500);
             $fileFinal = $folder.$file_name;

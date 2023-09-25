@@ -57,7 +57,7 @@ class CategoriaController extends Controller
         if($request->hasFile("m_foto")){
             $folder = "public/categorias/";
             $file_name =  time()."_".$file->getClientOriginalName();                
-            $file->storeAs($folder, $file_name, "local");
+            $file->move(public_path("storage/categorias"), $file_name);
             Funciones::resizeImage($folder,$file_name, "min", 200, 200);
             Funciones::resizeImage($folder,$file_name, "max", 1000, 1000);
             $fileFinal = $folder.$file_name;

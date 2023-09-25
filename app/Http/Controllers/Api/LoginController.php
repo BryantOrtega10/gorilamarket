@@ -14,23 +14,24 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 class LoginController extends Controller
 {
 
     public function loginSMS(CelularRequest $request){
         
-        $user = env("NRSGATEWAY_USER");
-        $password = env("NRSGATEWAY_PASS");
+        $user = env("NRSGATEWAY_USER","mdc");
+        $password = env("NRSGATEWAY_PASS","123");
         $codigoSMS = rand(1000, 9999);
         $telefono = str_replace(" ", "", $request->numeroTelefono);
         if (strlen($telefono) != 10) {
             return response()->json([
                 "success" => false,
-                "message" => 'Número de celular invalido'
+                "error" => 'Número de celular invalido'
             ]);
         }
-
+        
         $result = Http::withHeaders([
             "Content-Type" => "application/json; charset=utf-8",
             "Accept" => "application/json",
@@ -45,7 +46,7 @@ class LoginController extends Controller
         if (!isset($result[0]["accepted"]) && (isset($result["error"]) && $result["error"]["code"] != "111")) {
             return response()->json([
                 "success" => false,
-                "message" => 'Error en el envio de mensajes SMS, intente de nuevo mas tarde',
+                "error" => 'Error en el envio de mensajes SMS, intente de nuevo mas tarde',
                 "result" => $result
             ]);
         }
@@ -64,14 +65,15 @@ class LoginController extends Controller
         $token = $usuario->createToken("auth_token")->plainTextToken;
         
         //No hay saldo en la cuenta de SMS's
-        
+        $error = "";
         if(isset($result["error"]) && $result["error"]["code"] == "111") {
-            $mensajeRespuesta = 'El código no pudo ser enviado, el código es: ' . $codigoSMS;
-            $success = false;
+            $error = 'El código no pudo ser enviado, el código es: ' . $codigoSMS;
+            $success = true;
         }
         return response()->json([
             "success" => $success,
             "message" => $mensajeRespuesta,
+            "error" => $error,
             "token" => $token
         ]);
     }   
@@ -84,7 +86,7 @@ class LoginController extends Controller
         if (!isset($user)) {
             return response()->json([
                 "success" => false,
-                "message" => 'Código invalido, intenta otra vez'
+                "error" => 'Código invalido, intenta otra vez'
             ]);
         }
 
@@ -120,7 +122,7 @@ class LoginController extends Controller
         $usuario = User::find($user->id);
         $usuario->name = $request->nombre . " " . $request->apellido;
         $usuario->save();
-        if (!isset($request->distribuidor) ) {
+        if ($request->distribuidor == "0") {
             $cliente = new Cliente();
             $cliente->nombre = $request->nombre;
             $cliente->apellido = $request->apellido;
@@ -131,8 +133,7 @@ class LoginController extends Controller
             $cliente->save();
         }
         else{
-            $file = $request->file('rut');
-            if ($request->hasFile("rut")) {
+            if ($request->rut != "") {
                 $distribuidor = new Cliente();
                 $distribuidor->nombre = $request->nombre;
                 $distribuidor->apellido = $request->apellido;
@@ -140,9 +141,10 @@ class LoginController extends Controller
                 $distribuidor->celular = str_replace("*","",$usuario->email);
                 $distribuidor->fk_usuario = $usuario->id;
                 $distribuidor->fijo = $this->crearCodigoReferido($request->nombre, $request->apellido);
+                //Agregar archivo por texto base 64
                 $folder = "public/ruts/";
-                $file_name =  time() . "_" . $file->getClientOriginalName();
-                $file->storeAs($folder, $file_name, "local");
+                $file_name =  time()."_".$request->rut_nombre;
+                $this->subirBase64($request->rut, $folder.$file_name);
                 $distribuidor->rut = $file_name;
                 $distribuidor->tipoCliente = "2";
                 $distribuidor->save();
@@ -150,7 +152,8 @@ class LoginController extends Controller
             else{
                 return response()->json([
                     "success" => false,
-                    "message" => 'Seleccione el rut para poder validar sus datos'
+                    "error" => 'Seleccione el rut para poder validar sus datos',
+                    "request" => $request->rut
                 ]);
             }
         }
@@ -165,6 +168,7 @@ class LoginController extends Controller
     public function registrarCliente(RegistrarClienteRequest $request){
 
         $user_reclutador = auth()->user();
+        $reclutador = Reclutador::where("fk_usuario","=",$user_reclutador->id)->first();
         $nm_usuario = $request->celular;
         $usuario = new User();
         $usuario->name = $request->nombre . " " . $request->apellido;
@@ -172,31 +176,31 @@ class LoginController extends Controller
         $usuario->role = 0;
         $usuario->password = bcrypt($nm_usuario);
         $usuario->save();
-        if (!isset($request->distribuidor) ) {
+        if ($request->distribuidor == "0") {
             $cliente = new Cliente();
             $cliente->nombre = $request->nombre;
             $cliente->apellido = $request->apellido;
             $cliente->email = $request->correo;
             $cliente->celular = str_replace("*","",$nm_usuario);
             $cliente->fk_usuario = $usuario->id;
-            $cliente->fk_reclutador = $user_reclutador->id;
+            $cliente->fk_reclutador = $reclutador->id_reclutador;
             $cliente->fijo = $this->crearCodigoReferido($request->nombre, $request->apellido);            
             $cliente->save();
         }
         else{
-            $file = $request->file('rut');
-            if ($request->hasFile("rut")) {
+            if ($request->rut != "") {
                 $distribuidor = new Cliente();
                 $distribuidor->nombre = $request->nombre;
                 $distribuidor->apellido = $request->apellido;
                 $distribuidor->email = $request->correo;
                 $distribuidor->celular = str_replace("*","",$nm_usuario);
                 $distribuidor->fk_usuario = $usuario->id;
-                $distribuidor->fk_reclutador = $user_reclutador->id;
+                $distribuidor->fk_reclutador = $reclutador->id_reclutador;
                 $distribuidor->fijo = $this->crearCodigoReferido($request->nombre, $request->apellido);
+                //Agregar archivo por texto base 64
                 $folder = "public/ruts/";
-                $file_name =  time() . "_" . $file->getClientOriginalName();
-                $file->storeAs($folder, $file_name, "local");
+                $file_name =  time()."_".$request->rut_nombre;
+                $this->subirBase64($request->rut, $folder.$file_name);
                 $distribuidor->rut = $file_name;
                 $distribuidor->tipoCliente = "2";
                 $distribuidor->save();
@@ -204,7 +208,7 @@ class LoginController extends Controller
             else{
                 return response()->json([
                     "success" => false,
-                    "message" => 'Seleccione el rut para poder validar sus datos'
+                    "error" => 'Seleccione el rut para poder validar sus datos'
                 ]);
             }
         }
@@ -215,16 +219,25 @@ class LoginController extends Controller
         ]);
     }
 
-    public function micuenta(){
+    public function miCuentaReclutador(){
         $user = auth()->user();
         $reclutador = Reclutador::where("fk_usuario","=",$user->id)->first();
+        $reclutador->saldo = "$".number_format($reclutador->valor_recaudado - $reclutador->valor_pagado);
         return response()->json([
             "success" => true,
-            "message" => 'Se cerró la sesión correctamente',
+            "message" => 'Datos consultados correctamente',
             "reclutador" => $reclutador         
         ]);
     }
-
+    public function miCuentaCliente(){
+        $user = auth()->user();
+        $cliente = Cliente::where("fk_usuario","=",$user->id)->first();
+        return response()->json([
+            "success" => true,
+            "message" => 'Datos consultados correctamente',
+            "cliente" => $cliente         
+        ]);
+    }
 
     public function logout(Request $request){
         $tokenId = $request->bearerToken();
@@ -256,5 +269,15 @@ class LoginController extends Controller
             $codigo = $codigo.$num;
         }
         return $codigo;
+    }
+    public function subirBase64($base64_string, $output_file)
+    {
+        $base64_string = str_replace(' ', '+', $base64_string);
+        if(strpos($base64_string, ",")!==false){
+            $base64 = explode(',', $base64_string);
+            $base64_string = $base64[1];
+        }        
+        Storage::disk('local')->put($output_file, base64_decode($base64_string));
+        return $output_file;
     }
 }

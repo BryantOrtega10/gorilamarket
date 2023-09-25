@@ -29,7 +29,7 @@ class PublicidadController extends Controller
         if($request->hasFile("imagen")){
             $folder = "public/imagenes_p/";
             $file_name =  time()."_".$file->getClientOriginalName();                
-            $file->storeAs($folder, $file_name, "local");
+            $file->move(public_path("storage/imagenes_p"), $file_name);
             if($request->tipo == "1"){
                 Funciones::resizeImage($folder,$file_name, "min", 100, 100);
                 Funciones::resizeImage($folder,$file_name, "max", 1440, 424);            
@@ -64,7 +64,7 @@ class PublicidadController extends Controller
         if($request->hasFile("imagen_n")){
             $folder = "public/imagenes_p/";
             $file_name =  time()."_".$file->getClientOriginalName();                
-            $file->storeAs($folder, $file_name, "local");
+            $file->move(public_path("storage/imagenes_p"), $file_name);
             Funciones::resizeImage($folder,$file_name, "min", 100, 100);
             Funciones::resizeImage($folder,$file_name, "max", 1000, 1000);            
             $fileFinal = $folder.$file_name;

@@ -9,6 +9,7 @@ class Funciones extends Controller
 {
     public static function resizeImage($directorio, $nombre, $prefijo, $ancho, $alto)
     {   
+        
         $rutaImagenOriginal = $directorio.$nombre;
         $rutaImagenOriginal = Storage::path($rutaImagenOriginal);
         $tamanio = getimagesize($rutaImagenOriginal);

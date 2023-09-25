@@ -6,6 +6,11 @@
 
 @section('content')
     <div class="container mi-carrito-completo">
+        @if (session('error'))
+        <div class="alert alert-danger my-3">
+            <strong>{{ session('error') }}</strong>
+        </div>
+        @endif
         <div class="row">
             <div class="col-12 col-md-6 px-3">
                 <h1>Mi Pedido</h1>

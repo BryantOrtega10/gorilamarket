@@ -138,6 +138,15 @@ Route::get("storage-link", function(){
     );	
 });
 
+Route::get('/cache', function() {
+    $exitCode = Artisan::call('route:clear');
+    $exitCode = Artisan::call('view:clear');
+    $exitCode = Artisan::call('config:cache');
+    $exitCode = Artisan::call('config:clear');
+    
+    return '<h3>Cache eliminado</h3>';
+});
+
 // Ruta panel de control
 Route::group([
 	'prefix' => 'panel-control',
